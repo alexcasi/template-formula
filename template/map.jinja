@@ -1,0 +1,19 @@
+# -*- coding: utf-8 -*-
+# vim: ft=jinja
+
+{% import_yaml 'template/defaults.yml' as defaults %}
+{% import_yaml 'template/osmap.yml' as osmap %}
+
+{# get the settings for the os_family grain #}
+{% set osfam = salt['grains.filter_by'](osmap) or {} %}
+
+{# merge the os family/codename specific data over the defaults #}
+{% do defaults.template.update(osfam) %}
+
+{# merge the pillar:lookup dict into the defaults/os specific dict #}
+{% set lookup = salt['pillar.get']('template:lookup',
+                                   default=defaults.template,
+                                   merge=True) %}
+
+{# merge the actual template pillar into the above combined dict #}
+{% set template = salt['pillar.get']('template', default=lookup, merge=True) %}
